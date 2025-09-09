@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{page_layout/layout}">
+<head>
+  <meta charset="UTF-8">
+  <title>Ενημέρωση Χρήστη</title>
+</head>
+<body>
+<!-- Φόρμα ενημέρωση δημιουργίας Οργανισμού -->
+<section layout:fragment="content" class="container mt-5">
+  <div class="text-center">
+    <h2>Δημιουργία Εκδήλωσης για Οργανισμό <span class="text-success" th:text="*{event.organization.name}"></span></h2>
+  </div>
+  <div class="container mt-4 d-flex flex-column align-items-center justify-content-center">
+
+    <form th:action="@{/events/create/{id}(id=${event.organization.id})}" th:object="${event}" method="post" class="mt-3">
+      <div class="form-group">
+        <label for="name" class="form-label">Όνομα Εκδήλωσης</label>
+        <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Όνομα Εκδήλωσης" required>
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="form-label">Περιγραφή Εκδήλωσης</label>
+        <input type="text" id="description" th:field="*{description}" class="form-control" placeholder="Περιγραφή Εκδήλωσης" required>
+      </div>
+
+      <div class="form-group">
+        <label for="eventDate" class="form-label">Ημερομηνία Εκδήλωσης</label>
+        <input type="date" id="eventDate" th:field="*{eventDate}" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="organization-name" class="form-label">Οργανισμός</label>
+        <input type="text" id="organization-name" disabled th:value="*{organization.name}" class="form-control" placeholder="Oργανισμός">
+      </div>
+
+      <input hidden id="organization" th:field="*{organization}"/>
+
+      <button type="submit" class="btn btn-light">Δημιουργία Εκδήλωσης</button>
+
+      <a th:href="@{/organizations/{id}/events(id=${event.organization.id})}" class="btn btn-warning">Ακύρωση</a>
+    </form>
+  </div>
+</section>
+</body>
+</html>

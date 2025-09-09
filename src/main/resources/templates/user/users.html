@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{page_layout/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Χρήστες</title>
+</head>
+<body>
+
+<div layout:fragment="header-nav-items">
+    <a th:href="@{/organizations/all}" th:text="Οργανισμοί" class="nav-link"></a>
+    <a th:href="@{/events/all}" th:text="Εκδηλώσεις" class="nav-link"></a>
+</div>
+
+<!-- Λίστα χρηστών που μόνο ο διαχειριστής έχει πρόσβαση -->
+<section layout:fragment="content" class="container mt-5">
+    <h2>Λίστα Χρηστών</h2>
+    <!-- Δείχνουμε τη λίστα χρηστών εάν υπάρχει -->
+    <div th:if="${ not#lists.isEmpty(users)}">
+        <table class="bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Όνομα Χρήστη</th>
+                    <th>Email</th>
+                    <th>Ενεργός</th>
+                    <th>Ρόλος</th>
+                    <th>Ενέργειες</th>
+                </tr>
+            </thead>
+            <tbody id="users-table">
+                <tr th:each="user : ${users}" th:if="${user.username.toLowerCase() != 'admin'}">
+                    <td th:text="${user.id}"></td>
+                    <td th:text="${user.username}"></td>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${user.enabled ? 'Ναι' : 'Όχι'}"></td>
+                    <td th:each="role : ${user.roles}" th:value="${role.id}"
+                        th:text="${role.name}"></td>
+                    <td>
+                        <!-- Ενέργεια ενημέρωσης χρήστη -->
+                        <a th:href="@{/users/update/{id}(id=${user.id})}" class="btn btn-primary">
+                            <i class="fa fa-pencil-alt"></i>
+                            <span>Ενημέρωση</span>
+                        </a>
+
+                        <!-- Ενέργεια διαγραφής χρήστη -->
+                        <form th:action="@{/users/delete/{id}(id=${user.id})}" method="post" style="display: inline">
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('Είστε σίγουρος ότι θέλετε προχωρήσετε σε διαγραφή χρήστη?');">
+                                <i class="fa fa-trash-alt"></i>
+                                <span>Διαγραφή</span>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Μήνυμα προς τον διαχειριστή, έαν η λίστα είναι ίδια -->
+    <div th:if="${ #lists.isEmpty(users)}">
+        Δεν βρέθηκαν χρήστες!
+    </div>
+</section>
+</body>
+</html>

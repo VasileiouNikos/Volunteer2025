@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{page_layout/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Εκδηλώσεις</title>
+</head>
+<body>
+<div layout:fragment="header-nav-items">
+    <a th:href="@{/organizations/all}" th:text="Οργανισμοί" class="nav-link"></a>
+    <a sec:authorize="hasAuthority('ADMIN')"  th:href="@{/users/list}" th:text="Χρήστες" class="nav-link"></a>
+</div>
+
+<!-- Φόρμα προβολής όλων των εκδηλώσεων ενός οργανισμού και των εγγραφών εθελοντών στις εκδηλώσεις -->
+<section layout:fragment="content" class="container mt-5">
+    <h2>Λίστα Εκδηλώσεων για Οργανισμό <span class="text-success" th:text="*{organizationName}"></span></h2>
+    <!-- Δείχνουμε την λίστα αν υπάρχουν εκδηλώσεις μόνο   -->
+    <div th:if="${ not#lists.isEmpty(events)}">
+        <!-- Λίστα εκδηλώσεων ενός οργανισμού  -->
+        <table class="bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Όνομα Εκδήλωσης</th>
+                <th>Περιγραφή Εκδήλωσης</th>
+                <th>Οργανισμός</th>
+                <th>Έγκριση Εκδήλωσης</th>
+                <th>Κατάσταση Εκδήλωσης</th>
+                <th sec:authorize="hasAuthority('ADMIN')">Ενέργειες</th>
+            </tr>
+            </thead>
+            <tbody id="organization-events-table">
+            <tr th:each="event : ${events}">
+                <td th:text="${event.id}"></td>
+                <td th:text="${event.name}"></td>
+                <td th:text="${event.description}"></td>
+                <td th:text="${event.organization.name}"></td>
+                <td th:text="${event.approved ? 'Nαι' : 'Όχι'}"></td>
+                <td>
+                    <span th:text="${event.status}"
+                          th:class="'text-' +${(event.status == event.status.APPROVED) ? 'success' : (event.status == event.status.REJECTED ? 'danger' : 'warning')}">
+                    </span>
+                </td>
+                <td sec:authorize="hasAuthority('ADMIN')">
+                    <!--  Ενέργειες του Διαχειριστή -->
+                    <div class="d-flex align-items-center gap-2" style="width: 226px;">
+                        <!-- Ενέργεια ενημέρωσης status approved εκδήλωσης -->
+                        <form action="#" th:action="@{/events/{id}/approve(id=${event.id})}" method="post">
+                            <button type="submit" th:disabled="${event.status == event.status.APPROVED}" class="btn btn-success">
+                                <i class="fa fa-check"></i>
+                                <span>Έγκριση</span>
+                            </button>
+                        </form>
+
+                        <!-- Ενέργεια ενημέρωσης status rejected εκδήλωσης -->
+                        <form action="#" th:action="@{/events/{id}/reject(id=${event.id})}" method="post">
+                            <button th:disabled="${event.status == event.status.REJECTED}" type="submit" class="btn btn-danger">
+                                <i class="fa fa-times"></i>
+                                <span>Απόρριψη</span>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Δείχνουμε την λίστα όλων των εγγραφών εθελοντών στις εκδηλώσεις του οργανισμού, εάν υπάρχουν -->
+        <div th:if="${ not#lists.isEmpty(registrations)}" class="mt-5">
+            <h2 class="">Λίστα Εθελοντών Εκδηλώσεων για Οργανισμό <span class="text-success" th:text="*{organizationName}"></span></h2>
+            <table class="bordered">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Όνομα Εθελοντή</th>
+                    <th>Email Εθελοντή</th>
+                    <th>Εκδήλωση</th>
+                    <th>Κατάσταση Εθελοντή</th>
+                    <th sec:authorize="hasAuthority('ADMIN')">Ενέργειες</th>
+                </tr>
+                </thead>
+                <tbody id="organization-events-registrations-table">
+                <tr th:each="registration : ${registrations}">
+                    <td th:text="${registration.id}"></td>
+                    <td th:text="${registration.volunteerName}"></td>
+                    <td th:text="${registration.email}"></td>
+                    <td th:text="${registration.event.name}"></td>
+                    <td>
+                    <span th:text="${registration.status}"
+                          th:class="'text-' +${(registration.status == registration.status.APPROVED) ? 'success' : (registration.status == registration.status.REJECTED ? 'danger' : 'warning')}">
+                    </span>
+                    </td>
+                    <td sec:authorize="hasAuthority('ADMIN')">
+                        <!--  Ενέργειες του Διαχειριστή -->
+                        <div class="d-flex align-items-center gap-2" style="width: 226px;">
+                            <!-- Ενέργεια ενημέρωσης status approved εθελοντή εκδήλωσης -->
+                            <form action="#" th:action="@{/organizations/{organizationId}/events/{eventId}/registrations/{registrationId}/approve(organizationId=${registration.event.organization.id}, eventId=${registration.event.id}, registrationId=${registration.id})}" method="post">
+                                <button type="submit" th:disabled="${registration.status == registration.status.APPROVED}" class="btn btn-success">
+                                    <i class="fa fa-check"></i>
+                                    <span>Έγκριση</span>
+                                </button>
+                            </form>
+
+                            <!-- Ενέργεια ενημέρωσης status rejected εθελοντή εκδήλωσης -->
+                            <form action="#" th:action="@{/organizations/{organizationId}/events/{eventId}/registrations/{registrationId}/reject(organizationId=${registration.event.organization.id}, eventId=${registration.event.id}, registrationId=${registration.id})}" method="post">
+                                <button th:disabled="${registration.status == registration.status.REJECTED}" type="submit" class="btn btn-danger">
+                                    <i class="fa fa-times"></i>
+                                    <span>Απόρριψη</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+    <div th:if="${ #lists.isEmpty(events)}">
+        Δεν βρέθηκαν εκδηλώσεις!
+    </div>
+</section>
+
+</body>
+</html>

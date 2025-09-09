@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{page_layout/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Εκδηλώσεις</title>
+</head>
+<body>
+
+<div layout:fragment="header-nav-items" >
+    <a sec:authorize="hasAuthority('ADMIN') or hasAuthority('ORGANIZATION')" th:href="@{/organizations/all}" th:text="Οργανισμοί" class="nav-link"></a>
+    <a sec:authorize="hasAuthority('ADMIN')" th:href="@{/users/list}" th:text="Χρήστες" class="nav-link"></a>
+</div>
+
+<section layout:fragment="content" class="container mt-5">
+    <h2>Λίστα Εκδηλώσεων</h2>
+    <!-- Δείχνουμε την λίστα αν υπάρχουν εκδηλώσεις -->
+    <div th:if="${ not#lists.isEmpty(events)}">
+        <table class="bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Όνομα Εκδήλωσης</th>
+                <th>Περιγραφή Εκδήλωσης</th>
+                <th>Οργανισμός</th>
+                <th sec:authorize="hasAuthority('ADMIN') or hasAuthority('ORGANIZATION')">Έγκριση Εκδήλωσης</th>
+                <th sec:authorize="hasAuthority('ADMIN') or hasAuthority('ORGANIZATION')">Κατάσταση Εκδήλωσης</th>
+                <th sec:authorize="hasAuthority('ADMIN') or hasAuthority('USER')">Ενέργειες</th>
+            </tr>
+            </thead>
+            <tbody id="organization-events-table">
+            <tr th:each="event : ${events}" th:if="${#authorization.expression('hasAuthority(''ADMIN'')') or #authorization.expression('hasAuthority(''ORGANIZATION'')') or (#authorization.expression('hasAuthority(''USER'')') and event.status == T(gr.hua.dit.ds.ds_lab.Models.EventStatus).APPROVED)}">
+                <td th:text="${event.id}"></td>
+                <td th:text="${event.name}"></td>
+                <td th:text="${event.description}"></td>
+                <td th:text="${event.organization.name}"></td>
+                <td sec:authorize="hasAuthority('ADMIN') or hasAuthority('ORGANIZATION')" th:text="${event.approved ? 'Nαι' : 'Όχι'}"></td>
+                <td sec:authorize="hasAuthority('ADMIN') or hasAuthority('ORGANIZATION')">
+                    <span th:text="${event.status}"
+                          th:class="'text-' +${(event.status == event.status.APPROVED) ? 'success' : (event.status == event.status.REJECTED ? 'danger' : 'warning')}">
+                    </span>
+                </td>
+                <td sec:authorize="hasAuthority('ADMIN') or hasAuthority('USER')">
+                    <!-- Ενέργεια εγγραφής εθελοντή σε εκδήλωση -->
+                    <div sec:authorize="hasAuthority('USER')" style="width: 100%;">
+                        <form th:action="@{/registrations/register/{eventId}(eventId=${event.id})}" method="post"
+                              style="display: inline">
+                            <!-- Eάν ο εθελοντής δεν είναι εγγεγραμμένος για την εκδήλωση, τότε δείχνουμ "Εγγραφή"  -->
+                            <button type="submit" class="btn btn-light" style="width: 100%"
+                                    th:if="${eventRegistrationMap[event.id] == null}">
+                                <i class="fa-solid fa-bell"></i>
+                                <span>Εγγραφή</span>
+                            </button>
+                            <!-- Eάν ο εθελοντής είναι εγγεγραμμένος για την εκδήλωση, τότε δείχνουμε "Εγγεγραμμένος" εάν έχει εγκριθεί από διαχειριστή ή "Υπο Έγκριση" διαφορετικά -->
+                            <button type="submit" class="btn btn-light" style="width: 100%"
+                                    th:if="${eventRegistrationMap[event.id] != null}" disabled>
+                                <i class="fa-solid fa-bell"></i>
+                                <span th:text="${eventRegistrationMap[event.id].status == eventRegistrationMap[event.id].status.APPROVED ? 'Εγγεγραμμένος' : 'Υπο Έγκριση'}">
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+
+
+                    <!--  Ενέργειες Μόνο του Διαχειριστή -->
+                    <div sec:authorize="hasAuthority('ADMIN')" class="d-flex align-items-center gap-2" style="width: 226px;">
+                        <!-- Ενέργεια ενημέρωσης status approved εκδήλωσης -->
+                        <form action="#" th:action="@{/events/{id}/approve(id=${event.id})}" method="post">
+                            <button type="submit" th:disabled="${event.status == event.status.APPROVED}" class="btn btn-success">
+                                <i class="fa fa-check"></i>
+                                <span>Έγκριση</span>
+                            </button>
+                        </form>
+
+                        <!-- Ενέργεια ενημέρωσης status rejected εκδήλωσης -->
+                        <form action="#" th:action="@{/events/{id}/reject(id=${event.id})}" method="post">
+                            <button th:disabled="${event.status == event.status.REJECTED}" type="submit" class="btn btn-danger">
+                                <i class="fa fa-times"></i>
+                                <span>Απόρριψη</span>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Δείχνουμε μήνυμα ότι δεν υπάρχον εκδηλώσεις, εάν δεν υπάρχουν -->
+    <div th:if="${ #lists.isEmpty(events)}">
+        Δεν βρέθηκαν εκδηλώσεις!
+    </div>
+</section>
+
+</body>
+</html>

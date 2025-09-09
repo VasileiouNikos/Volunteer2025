@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{page_layout/layout}">
+
+<head>
+  <meta charset="UTF-8">
+  <title layout:fragment="title">Αρχική</title>
+</head>
+<body>
+<!--Σελίδα που βλέπει μόνο ο διαχειριστής, μετά την επιτυχή σύνδεση -->
+<section layout:fragment="content" class="container text-center mt-5">
+  <h2>Τι θέλετε να δείτε?</h2>
+  <div class="mt-5 d-flex align-items-center justify-content-center gap-3">
+    <a th:href="@{/events/all}">
+      <button class="btn btn-light">Εκδηλώσεις</button>
+    </a>
+
+    <div sec:authorize="hasAuthority('ADMIN')" class="d-flex align-items-center justify-content-center gap-3">
+      <a th:href="@{/organizations/all}">
+        <button class="btn btn-light">Οργανισμούς</button>
+      </a>
+      <a th:href="@{/users/list}">
+        <button class="btn btn-light">Χρήστες</button>
+      </a>
+    </div>
+  </div>
+</section>
+</body>
+</html>

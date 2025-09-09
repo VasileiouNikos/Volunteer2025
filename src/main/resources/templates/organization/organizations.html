@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{page_layout/layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Οργανισμοί</title>
+</head>
+<body>
+
+<div layout:fragment="header-nav-items">
+  <a th:href="@{/events/all}" th:text="Εκδηλώσεις" class="nav-link"></a>
+  <a sec:authorize="hasAuthority('ADMIN')" th:href="@{/users/list}" th:text="Χρήστες" class="nav-link"></a>
+</div>
+
+<!-- Λίστα προβολής όλων των οργανισμών -->
+<section layout:fragment="content" class="container mt-5">
+  <h2>Λίστα Οργανισμών</h2>
+  <div th:if="${ not#lists.isEmpty(organizations)}">
+    <table class="bordered">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Όνομα Οργανισμού</th>
+        <th>Email Οργανισμού</th>
+        <th>Ενέργειες</th>
+      </tr>
+      </thead>
+      <tbody id="organizations-table">
+      <tr th:each="organization : ${organizations}">
+        <td th:text="${organization.id}"></td>
+        <td th:text="${organization.name}"></td>
+        <td th:text="${organization.email}"></td>
+
+        <td class="d-flex flex-column gap-2">
+          <!-- Ενέργεια Δημιουργίας εκδήλωσης οργανισμού -->
+          <a th:if="${#authorization.expression('hasAuthority(''ORGANIZATION'')')  and (organization.email.matches('(?i).*' + #strings.replace(#strings.replace(#authentication.name, '_', ''), ' ', '') + '.*'))}" th:href="@{/events/create/{id}(id=${organization.id})}" class="btn btn-success" >
+            <i class="fa-solid fa-plus"></i>
+            <span>Δημιουργία Εκδήλωσης</span>
+          </a>
+          <!-- Ενέργεια Προβολής εκδηλώσεων οργανισμού -->
+          <a th:href="@{/organizations/{id}/events(id=${organization.id})}" class="btn btn-light">
+            <i class="fa-solid fa-eye"></i>
+            <span>Προβολή Εκδηλώσεων</span>
+          </a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+<!-- Μήνυμα προς στον χρήστη εάν δεν υπάρχουν οργανισμοί -->
+  <div th:if="${ #lists.isEmpty(organizations)}">
+    Δεν βρέθηκαν οργανισμοί!
+  </div>
+
+</section>
+
+</body>
+</html>
